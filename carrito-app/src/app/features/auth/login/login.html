@@ -1,0 +1,57 @@
+<main class="login-page">
+  <section class="login-card">
+    <h1>Iniciar sesión</h1>
+    <p class="subtitle">Accede para ver los productos y tu carrito.</p>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      <div class="field">
+        <label for="username">Usuario</label>
+        <input
+          id="username"
+          type="text"
+          formControlName="username"
+          autocomplete="username"
+          [class.invalid]="username.touched && username.invalid"
+        />
+        @if (username.touched && username.invalid) {
+          <small class="error">
+            @if (username.hasError('required')) { El usuario es obligatorio. }
+            @else { Debe tener entre 3 y 50 caracteres. }
+          </small>
+        }
+      </div>
+
+      <div class="field">
+        <label for="password">Contraseña</label>
+        <div class="password-row">
+          <input
+            id="password"
+            [type]="showPassword() ? 'text' : 'password'"
+            formControlName="password"
+            autocomplete="current-password"
+            [class.invalid]="password.touched && password.invalid"
+          />
+          <button type="button" class="link" (click)="togglePassword()">
+            {{ showPassword() ? 'Ocultar' : 'Mostrar' }}
+          </button>
+        </div>
+        @if (password.touched && password.invalid) {
+          <small class="error">
+            @if (password.hasError('required')) { La contraseña es obligatoria. }
+            @else { Debe tener al menos 6 caracteres. }
+          </small>
+        }
+      </div>
+
+      @if (errorMessage()) {
+        <div class="alert" role="alert">{{ errorMessage() }}</div>
+      }
+
+      <button type="submit" class="primary" [disabled]="loading()">
+        @if (loading()) { Ingresando... } @else { Ingresar }
+      </button>
+    </form>
+
+    <p class="hint">Usuario de prueba: <code>cliente</code> / <code>Cliente123!</code></p>
+  </section>
+</main>
