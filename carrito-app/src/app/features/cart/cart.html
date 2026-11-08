@@ -1,0 +1,77 @@
+<div class="page-header">
+  <div>
+    <h1>Mi carrito</h1>
+    <p class="muted">Revisa las cantidades antes de confirmar tu compra.</p>
+  </div>
+</div>
+
+@if (loading() && cartService.isEmpty()) {
+  <app-spinner text="Cargando carrito..." />
+} @else if (error()) {
+  <div class="alert alert-error" role="alert">
+    {{ error() }}
+    <button type="button" class="btn btn-secondary btn-sm" (click)="reload()">Reintentar</button>
+  </div>
+} @else if (cartService.isEmpty()) {
+  <div class="card empty-state">
+    <h2>Tu carrito está vacío</h2>
+    <p>Agrega productos desde el catálogo para comenzar.</p>
+    <a routerLink="/products" class="btn btn-primary">Ver productos</a>
+  </div>
+} @else {
+  @let cart = cartService.cart();
+
+  @if (cart.tieneProblemasStock) {
+    <div class="alert alert-warning" role="alert">
+      Algunos productos ya no tienen stock suficiente. Ajusta las cantidades para poder continuar.
+    </div>
+  }
+
+  <div class="layout">
+    <section class="card items">
+      @for (item of cart.detalles; track item.productoId) {
+        <div class="item" [class.item-warning]="!item.stockSuficiente">
+          <div class="info">
+            <strong>{{ item.producto }}</strong>
+            <span class="muted small">{{ item.codigo }} · {{ item.categoria }}</span>
+            <span class="muted small">{{ item.precio | currency: 'USD' }} c/u · Disponible: {{ item.stockDisponible }}</span>
+            @if (!item.stockSuficiente) {
+              <span class="stock-msg">
+                {{ item.stockDisponible === 0 ? 'Producto agotado.' : 'Solo quedan ' + item.stockDisponible + ' unidad(es).' }}
+                <button type="button" class="link" [disabled]="busy()" (click)="fitToStock(item)">
+                  {{ item.stockDisponible === 0 ? 'Quitar' : 'Ajustar a ' + item.stockDisponible }}
+                </button>
+              </span>
+            }
+          </div>
+
+          <div class="qty" [attr.aria-label]="'Cantidad de ' + item.producto">
+            <button type="button" [disabled]="busy()" (click)="decrease(item)" aria-label="Disminuir">−</button>
+            <span>{{ item.cantidad }}</span>
+            <button type="button" [disabled]="busy() || item.cantidad >= item.stockDisponible"
+                    (click)="increase(item)" aria-label="Aumentar">+</button>
+          </div>
+
+          <strong class="line-total">{{ item.total | currency: 'USD' }}</strong>
+
+          <button type="button" class="btn btn-ghost btn-sm remove" [disabled]="busy()" (click)="remove(item)"
+                  [attr.aria-label]="'Quitar ' + item.producto">✕</button>
+        </div>
+      }
+
+      <div class="items-footer">
+        <a routerLink="/products" class="btn btn-ghost btn-sm">‹ Seguir comprando</a>
+        <button type="button" class="btn btn-danger btn-sm" [disabled]="busy()" (click)="clear()">Vaciar carrito</button>
+      </div>
+    </section>
+
+    <aside class="card summary">
+      <h2>Resumen</h2>
+      <app-cart-summary [itemCount]="cart.cantidadTotal" [subtotal]="cart.subtotal"
+                        [discountPercent]="cart.porcDescuento" [discount]="cart.descuento" [total]="cart.total" />
+      <a routerLink="/checkout" class="btn btn-primary btn-block checkout"
+         [class.disabled]="cart.tieneProblemasStock || busy()"
+         [attr.aria-disabled]="cart.tieneProblemasStock || busy()">Continuar con la compra</a>
+    </aside>
+  </div>
+}

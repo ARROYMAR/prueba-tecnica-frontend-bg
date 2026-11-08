@@ -1,0 +1,128 @@
+<div class="page-header">
+  <div>
+    <h1>Productos</h1>
+    <p class="muted">Busca por nombre, código o categoría y agrega al carrito.</p>
+  </div>
+  @if (cart.itemCount() > 0) {
+    <a routerLink="/cart" class="btn btn-primary">Ver carrito ({{ cart.itemCount() }})</a>
+  }
+</div>
+
+<form class="card filters" [formGroup]="filters" (ngSubmit)="$event.preventDefault()">
+  <div class="field search">
+    <label class="label" for="buscar">Buscar</label>
+    <input id="buscar" class="input" type="search" formControlName="buscar"
+           placeholder="Ej. mouse, TEC-001, Hogar..." autocomplete="off" />
+  </div>
+
+  <div class="field">
+    <label class="label" for="category">Categoría</label>
+    <select id="category" class="select" formControlName="categoriaId">
+      <option [ngValue]="null">Todas</option>
+      @for (c of categories(); track c.id) {
+        <option [ngValue]="c.id">{{ c.descripcion }}</option>
+      }
+    </select>
+  </div>
+
+  <div class="field price">
+    <label class="label" for="precioMin">Precio mín.</label>
+    <input id="precioMin" class="input" type="number" min="0" step="0.01" formControlName="precioMin" />
+  </div>
+
+  <div class="field price">
+    <label class="label" for="precioMax">Precio máx.</label>
+    <input id="precioMax" class="input" type="number" min="0" step="0.01" formControlName="precioMax" />
+  </div>
+
+  <label class="check">
+    <input type="checkbox" formControlName="conStock" /> Solo con stock
+  </label>
+
+  <button type="button" class="btn btn-ghost btn-sm" (click)="clearFilters()">Limpiar</button>
+</form>
+
+@if (loading()) {
+  <app-spinner text="Cargando productos..." />
+} @else if (error()) {
+  <div class="alert alert-error" role="alert">
+    {{ error() }}
+    <button type="button" class="btn btn-secondary btn-sm retry" (click)="retry()">Reintentar</button>
+  </div>
+} @else if (result(); as res) {
+  @if (res.items.length === 0) {
+    <div class="card empty-state">
+      <h2>No se encontraron productos</h2>
+      <p>Prueba con otro texto o quita algunos filtros.</p>
+      <button type="button" class="btn btn-secondary" (click)="clearFilters()">Limpiar filtros</button>
+    </div>
+  } @else {
+    <p class="muted results">{{ res.totalRegistros }} producto(s) encontrado(s)</p>
+
+    <div class="card list">
+      <table class="table products">
+        <thead>
+          <tr>
+            <th>Código</th>
+            <th>Producto</th>
+            <th>Categoría</th>
+            <th class="text-right">Precio</th>
+            <th class="text-right">Stock</th>
+            <th class="col-add">Cantidad</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (p of res.items; track p.id) {
+            <tr class="product" [class.out]="p.stock === 0">
+              <td class="code" data-label="Código">{{ p.codigo }}</td>
+              <td class="name" data-label="Producto">
+                <strong>{{ p.producto }}</strong>
+                @if (p.descripcion) {
+                  <div class="desc">{{ p.descripcion }}</div>
+                }
+                @if (cart.quantities().get(p.id); as inCart) {
+                  <div class="in-cart">En tu carrito: {{ inCart }}</div>
+                }
+              </td>
+              <td data-label="Categoría">{{ p.categoria }}</td>
+              <td class="text-right nowrap" data-label="Precio">{{ p.precio | currency: 'USD' }}</td>
+              <td class="text-right" data-label="Stock">
+                @if (p.stock === 0) {
+                  <span class="stock-out">Agotado</span>
+                } @else if (p.stock <= 5) {
+                  <span class="stock-low">{{ p.stock }}</span>
+                } @else {
+                  {{ p.stock }}
+                }
+              </td>
+              <td class="col-add" data-label="Cantidad">
+                @if (remaining(p) > 0) {
+                  <div class="add-row">
+                    <input #qty class="input qty-input" type="number" min="1" [max]="remaining(p)" value="1"
+                           [attr.aria-label]="'Cantidad de ' + p.producto" />
+                    <button type="button" class="btn btn-primary btn-sm" [disabled]="adding().has(p.id)"
+                            (click)="addToCart(p, qty.value); qty.value = '1'">
+                      {{ adding().has(p.id) ? 'Agregando...' : 'Agregar' }}
+                    </button>
+                  </div>
+                } @else {
+                  <span class="muted small">{{ p.stock === 0 ? 'Sin stock' : 'Máximo en carrito' }}</span>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    @if (res.totalPaginas > 1) {
+      <nav class="pagination" aria-label="Paginación">
+        <button type="button" class="btn btn-secondary btn-sm" [disabled]="res.pagina <= 1"
+                (click)="goToPage(res.pagina - 1)">‹ Anterior</button>
+        <span>Página {{ res.pagina }} de {{ res.totalPaginas }}</span>
+        <button type="button" class="btn btn-secondary btn-sm" [disabled]="res.pagina >= res.totalPaginas"
+                (click)="goToPage(res.pagina + 1)">Siguiente ›</button>
+      </nav>
+    }
+  }
+}
