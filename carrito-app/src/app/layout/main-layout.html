@@ -1,0 +1,28 @@
+<header class="topbar">
+  <div class="container topbar-inner">
+    <a routerLink="/products" class="brand">Carrito de Compras</a>
+
+    <nav class="nav">
+      <a routerLink="/products" routerLinkActive="active">Productos</a>
+      <a routerLink="/cart" routerLinkActive="active">
+        Carrito
+        @if (cart.itemCount() > 0) {
+          <span class="count" aria-label="productos en el carrito">{{ cart.itemCount() }}</span>
+        }
+      </a>
+      <a routerLink="/orders" routerLinkActive="active">Mis compras</a>
+    </nav>
+
+    <div class="user">
+      <span class="user-name">{{ auth.session()?.nombre }}</span>
+      @if (auth.isAdmin()) {
+        <span class="badge badge-info">Admin</span>
+      }
+      <button type="button" class="btn btn-ghost btn-sm" (click)="auth.logout()">Salir</button>
+    </div>
+  </div>
+</header>
+
+<main class="container page">
+  <router-outlet />
+</main>

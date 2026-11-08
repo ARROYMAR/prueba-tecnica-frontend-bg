@@ -1,18 +1,18 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { finalize } from 'rxjs';
 
 import { AuthService } from '../../../core/services/auth.service';
 
-// Angular 22: los componentes son standalone y OnPush por defecto,
-// por eso no hace falta declarar ninguna de las dos cosas.
 @Component({
   selector: 'app-login',
+  standalone: true,
   imports: [ReactiveFormsModule],
   templateUrl: './login.html',
   styleUrl: './login.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Login {
   private readonly fb = inject(FormBuilder);
@@ -25,12 +25,12 @@ export class Login {
   readonly showPassword = signal(false);
 
   readonly form = this.fb.nonNullable.group({
-    username: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(50)]],
+    usuario: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(50)]],
     password: ['', [Validators.required, Validators.minLength(6), Validators.maxLength(100)]],
   });
 
-  get username() {
-    return this.form.controls.username;
+  get usuario() {
+    return this.form.controls.usuario;
   }
 
   get password() {

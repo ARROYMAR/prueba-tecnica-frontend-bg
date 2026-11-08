@@ -1,0 +1,52 @@
+<a routerLink="/orders" class="btn btn-ghost btn-sm back">‹ Mis compras</a>
+
+@if (loading()) {
+  <app-spinner text="Cargando orden..." />
+} @else if (error()) {
+  <div class="alert alert-error" role="alert">{{ error() }}</div>
+} @else if (order(); as o) {
+  @if (isNew()) {
+    <div class="alert alert-success" role="status">
+      ¡Gracias por tu compra! Tu orden <strong>#{{ o.id }}</strong> fue registrada y el stock fue actualizado.
+    </div>
+  }
+
+  <div class="page-header">
+    <div>
+      <h1>Orden #{{ o.id }}</h1>
+      <p class="muted">Realizada el {{ o.ordenCreacion | date: "dd/MM/yyyy 'a las' HH:mm" }}</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Código</th>
+            <th>Producto</th>
+            <th class="text-right">Precio</th>
+            <th class="text-right">Cant.</th>
+            <th class="text-right">Subtotal</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of o.detalles; track item.productoId) {
+            <tr>
+              <td><code>{{ item.productoCodigo }}</code></td>
+              <td>{{ item.productoNombre }}</td>
+              <td class="text-right nowrap">{{ item.precio | currency: 'USD' }}</td>
+              <td class="text-right">{{ item.cantidad }}</td>
+              <td class="text-right nowrap">{{ item.total | currency: 'USD' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <div class="order-totals">
+      <app-cart-summary [itemCount]="o.cantidadTotal" [subtotal]="o.subtotal"
+                        [discountPercent]="o.porcDescuento" [discount]="o.descuento" [total]="o.total" />
+    </div>
+  </div>
+}

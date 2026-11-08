@@ -1,0 +1,54 @@
+<div class="page-header">
+  <div>
+    <h1>Mis compras</h1>
+    <p class="muted">Historial de órdenes realizadas.</p>
+  </div>
+</div>
+
+@if (loading()) {
+  <app-spinner text="Cargando historial..." />
+} @else if (error()) {
+  <div class="alert alert-error" role="alert">
+    {{ error() }}
+    <button type="button" class="btn btn-secondary btn-sm" (click)="load()">Reintentar</button>
+  </div>
+} @else if (orders().length === 0) {
+  <div class="card empty-state">
+    <h2>Aún no tienes compras</h2>
+    <p>Cuando finalices una compra aparecerá aquí.</p>
+    <a routerLink="/products" class="btn btn-primary">Ver productos</a>
+  </div>
+} @else {
+  <div class="card table-wrap">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Orden</th>
+          <th>Fecha</th>
+          <th class="text-right">Unidades</th>
+          <th class="text-right">Subtotal</th>
+          <th class="text-right">Descuento</th>
+          <th class="text-right">Total</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (o of orders(); track o.id) {
+          <tr>
+            <td><strong>#{{ o.id }}</strong></td>
+            <td class="nowrap">{{ o.ordenCreacion | date: 'dd/MM/yyyy HH:mm' }}</td>
+            <td class="text-right">{{ o.cantidadTotal }}</td>
+            <td class="text-right nowrap">{{ o.subtotal | currency: 'USD' }}</td>
+            <td class="text-right nowrap">
+              @if (o.descuento > 0) { -{{ o.descuento | currency: 'USD' }} } @else { — }
+            </td>
+            <td class="text-right nowrap"><strong>{{ o.total | currency: 'USD' }}</strong></td>
+            <td class="text-right">
+              <a [routerLink]="['/orders', o.id]" class="btn btn-secondary btn-sm">Ver detalle</a>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}

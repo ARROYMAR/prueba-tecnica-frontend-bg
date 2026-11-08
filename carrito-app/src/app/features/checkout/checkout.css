@@ -1,0 +1,13 @@
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 20px;
+  align-items: start;
+}
+
+.small { font-size: 0.8rem; }
+.confirm { margin: 16px 0 8px; }
+
+@media (max-width: 860px) {
+  .layout { grid-template-columns: 1fr; }
+}

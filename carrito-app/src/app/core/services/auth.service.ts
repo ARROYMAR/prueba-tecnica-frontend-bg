@@ -13,13 +13,13 @@ export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
 
-  // Estado de la sesión como signal: las vistas reaccionan solas al cambio.
+  // Estado de la sesión como signal: los componentes reaccionan solos al cambio.
   private readonly _session = signal<Session | null>(this.readSession());
 
   readonly session = this._session.asReadonly();
   readonly isLoggedIn = computed(() => {
     const s = this._session();
-    return !!s && new Date(s.expiresAt).getTime() > Date.now();
+    return !!s && new Date(s.expira).getTime() > Date.now();
   });
   readonly isAdmin = computed(() => this._session()?.rol === 'Admin');
 
@@ -42,8 +42,9 @@ export class AuthService {
   }
 
   private saveSession(res: LoginResponse): void {
-    localStorage.setItem(SESSION_KEY, JSON.stringify(res));
-    this._session.set(res);
+    const session: Session = { ...res };
+    localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+    this._session.set(session);
   }
 
   private readSession(): Session | null {

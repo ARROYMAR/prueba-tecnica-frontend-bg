@@ -1,0 +1,77 @@
+<div class="page-header">
+  <div>
+    <h1>Confirmar compra</h1>
+    <p class="muted">Revisa el resumen. Al confirmar se genera la orden y se descuenta el stock.</p>
+  </div>
+</div>
+
+@if (loading()) {
+  <app-spinner text="Preparando resumen..." />
+} @else if (cartService.isEmpty()) {
+  <div class="card empty-state">
+    <h2>No hay productos para comprar</h2>
+    <p>Tu carrito está vacío.</p>
+    <a routerLink="/products" class="btn btn-primary">Ver productos</a>
+  </div>
+} @else {
+  @let cart = cartService.cart();
+
+  @if (error()) {
+    <div class="alert alert-error" role="alert">
+      {{ error() }}
+      @if (cart.tieneProblemasStock) {
+        <a routerLink="/cart">Ajustar carrito</a>
+      }
+    </div>
+  } @else if (cart.tieneProblemasStock) {
+    <div class="alert alert-warning" role="alert">
+      Algunos productos no tienen stock suficiente. <a routerLink="/cart">Ajusta tu carrito</a> para continuar.
+    </div>
+  }
+
+  <div class="layout">
+    <section class="card">
+      <h2>Productos</h2>
+      <div class="table-wrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Producto</th>
+              <th class="text-right">Precio</th>
+              <th class="text-right">Cant.</th>
+              <th class="text-right">Subtotal</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of cart.detalles; track item.productoId) {
+              <tr>
+                <td>
+                  {{ item.producto }}
+                  <div class="muted small">{{ item.codigo }}</div>
+                  @if (!item.stockSuficiente) {
+                    <span class="badge badge-danger">Disponible: {{ item.stockDisponible }}</span>
+                  }
+                </td>
+                <td class="text-right nowrap">{{ item.precio | currency: 'USD' }}</td>
+                <td class="text-right">{{ item.cantidad }}</td>
+                <td class="text-right nowrap">{{ item.total | currency: 'USD' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <aside class="card">
+      <h2>Total a pagar</h2>
+      <app-cart-summary [itemCount]="cart.cantidadTotal" [subtotal]="cart.subtotal"
+                        [discountPercent]="cart.porcDescuento" [discount]="cart.descuento" [total]="cart.total" />
+
+      <button type="button" class="btn btn-primary btn-block confirm"
+              [disabled]="submitting() || cart.tieneProblemasStock" (click)="confirm()">
+        {{ submitting() ? 'Procesando...' : 'Confirmar compra' }}
+      </button>
+      <a routerLink="/cart" class="btn btn-ghost btn-block">‹ Volver al carrito</a>
+    </aside>
+  </div>
+}
